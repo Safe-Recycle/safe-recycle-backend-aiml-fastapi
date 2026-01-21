@@ -1,0 +1,10 @@
+numpy
+
+uvicorn
+pyjwt
+fastapi
+
+# Database
+sqlmodel
+pydantic-settings
+pymysql
