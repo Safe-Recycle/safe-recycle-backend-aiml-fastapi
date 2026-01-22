@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, HTTPException, status
+from fastapi import Depends, APIRouter, HTTPException, status, Header
 from typing import Annotated
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
@@ -6,8 +6,9 @@ from sqlmodel import Session
 
 from app.databases.session import get_session
 from app.models.user_model import User
+from app.schemas.token_schema import LogoutRequest
 from app.schemas.user_schema import UserCreate, UserRead
-from app.services.authentication_service import authenticate_user, create_access_token, create_user, get_current_active_user
+from app.services.authentication_service import authenticate_user, create_access_token, create_user, get_current_active_user, create_refresh_token, logout_user, revoke_refresh_token
 from app.models.jwt_model import Token
 from app.core.config import settings
 
@@ -31,10 +32,19 @@ async def login_for_access_token(
         )
         
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
     access_token = create_access_token(
         user_id=user.id, expires_delta=access_token_expires
     )
-    return Token(access_token=access_token, token_type="bearer")
+    refresh_token = create_refresh_token(
+        session, user.id
+    )
+    
+    return Token(
+        access_token=access_token, 
+        refresh_token=refresh_token,
+        token_type="bearer"
+    )
     
 @router.get("/users/me", response_model=UserRead)
 async def read_users_me(
@@ -58,3 +68,14 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+        
+@router.post("/logout")
+def logout(
+    data: LogoutRequest,
+    authorization: str = Header(...),
+    session: Session = Depends(get_session)
+):
+    token = authorization.replace("Bearer ", "")
+    logout_user(token, session)
+    revoke_refresh_token(session, data.refresh_token)
+    return {"message": "Logout successful"}
