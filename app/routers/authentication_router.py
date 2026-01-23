@@ -69,6 +69,45 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
             detail=str(e)
         )
         
+@router.post("/refresh")
+def refresh_access_token(
+    refresh_token_raw: str,
+    session: Session = Depends(get_session)
+):
+    try:
+        # 1. Validate refresh token
+        refresh_token = validate_refresh_token(session, refresh_token_raw)
+        if not refresh_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired refresh token"
+            )
+
+        user_id = refresh_token.user_id
+
+        # 2. Revoke old refresh token (rotation)
+        revoke_refresh_token(session=session, refresh_token=refresh_token)
+
+        # 3. Create new tokens
+        access_token = create_access_token(user_id=user_id)
+        new_refresh_token = create_refresh_token(session, user_id)
+
+        return Token(
+            access_token=access_token,
+            refresh_token=new_refresh_token,
+            token_type="bearer"
+        )
+
+    except HTTPException:
+        # biarin HTTPException lewat (401, 403, dll)
+        raise
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unexpected error while refreshing token"
+        )
+        
 @router.post("/logout")
 def logout(
     data: LogoutRequest,
