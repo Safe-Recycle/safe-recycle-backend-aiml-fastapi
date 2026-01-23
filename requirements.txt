@@ -1,0 +1,17 @@
+numpy
+
+uvicorn
+pyjwt
+fastapi
+python-multipart
+
+# Database
+sqlmodel
+pydantic-settings
+pydantic[email]
+psycopg2
+
+# OAuth
+pyjwt
+pwdlib
+pwdlib[argon2]
