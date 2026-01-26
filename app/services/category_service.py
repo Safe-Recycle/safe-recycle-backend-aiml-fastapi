@@ -42,8 +42,9 @@ def create_category(session: Session, data: CreateCategory) -> Category:
 
 def update_category(
     session: Session, 
-    id: int, 
-    data: CreateCategory
+    id: int,
+    name: str | None = None,
+    image_link: str | None = None 
 ) -> Category | None:
     category = session.exec(
         select(Category).where(Category.id == id)
@@ -52,11 +53,11 @@ def update_category(
     if not category: 
         return None
     
-    if data.name is not None:
-        category.name = data.name
+    if name is not None:
+        category.name = name
     
-    if data.image is not None:
-        category.image = data.image
+    if image_link is not None:
+        category.image_link = image_link
 
     session.add(category)
     session.commit()
