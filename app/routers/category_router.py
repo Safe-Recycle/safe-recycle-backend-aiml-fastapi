@@ -4,14 +4,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from pathlib import Path
 
-from app.services.category_service import read_category, show_category, create_category, update_category
+from app.services.category_service import read_category, show_category, create_category, update_category, delete_cetegory
 from app.databases.session import get_session
 from app.schemas.category_schema import ReadCategory, CreateCategory
 
 BASE_STORAGE = Path("storage/image")
 BASE_STORAGE.mkdir(parents=True, exist_ok=True)
 
-router = APIRouter(prefix="/api/categories", tags=["category"])
+router = APIRouter(prefix="/categories", tags=["category"])
 
 @router.get("/{id}")
 def read_category_endpoint(id: int, session: Session = Depends(get_session)):
@@ -22,7 +22,7 @@ def read_category_endpoint(id: int, session: Session = Depends(get_session)):
     
     return category
 
-@router.get("/", response_model = List(ReadCategory))
+@router.get("/", response_model = List[ReadCategory])
 def show_categories_endpoint(
     name: Optional[str] = Query(
         default=None,
@@ -45,13 +45,17 @@ def create_category_endpoint(
         filename = f"{uuid4().hex}_{image.filename}"
         filepath = BASE_STORAGE / filename
         
+        print(filepath)
+        
         with open(filepath, "wb")  as f:
             f.write(image.file.read())
         
         category = create_category(
             session=session,
-            name=name,
-            image_path=str(filepath)
+            data=CreateCategory(
+                name=name,
+                image_link=str(filepath)
+            )
         )
 
         return category
@@ -108,3 +112,18 @@ def update_category_endpoint(
         raise
     except Exception as e:
         raise HTTPException(400, str(e))
+    
+@router.delete("/{id}")
+def delete_category_endpoint(
+    id: int,
+    session: Session = Depends(get_session)
+):
+    category = delete_cetegory(session=session, id=id)
+    
+    if not category:
+        return HTTPException(status_code=404, detail="Category not found")
+    
+    return {
+        "status": "success",
+        "message": "Category is deleted"
+    }

@@ -1,5 +1,6 @@
 from sqlmodel import Session, select
 from typing import Optional
+from datetime import datetime, timezone 
 
 from app.models.category_model import Category
 from app.schemas.category_schema import CreateCategory
@@ -31,7 +32,7 @@ def create_category(session: Session, data: CreateCategory) -> Category:
     
     category = Category(
         name=data.name,
-        image=data.image_link
+        image_link=data.image_link
     )
     
     session.add(category)
@@ -58,9 +59,27 @@ def update_category(
     
     if image_link is not None:
         category.image_link = image_link
+        
+    category.updated_at = datetime.now(timezone.utc)
 
     session.add(category)
     session.commit()
     session.refresh(category)
 
+    return category
+
+def delete_cetegory(
+    session: Session,
+    id: int
+):
+    category = session.exec(
+        select(Category).where(Category.id == id)
+    ).first()
+    
+    if not category:
+        return None
+    
+    session.delete(category)
+    session.commit()
+    
     return category
