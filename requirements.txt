@@ -10,6 +10,7 @@ sqlmodel
 pydantic-settings
 pydantic[email]
 psycopg2
+alembic
 
 # OAuth
 pyjwt
