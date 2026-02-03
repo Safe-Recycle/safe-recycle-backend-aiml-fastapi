@@ -19,7 +19,7 @@ class Item(SQLModel, table=True):
     is_hazardous: bool
     
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime | None = None
     
     category_id: int = Field(foreign_key="categories.id", index=True)
     category: "Category" = Relationship(back_populates="item")
