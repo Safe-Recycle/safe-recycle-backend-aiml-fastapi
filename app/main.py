@@ -10,9 +10,10 @@ from app.databases.session import create_db_and_tables
 
 app = FastAPI()
 
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
+# Tidak dipakai lagi karena sudah menggunakan Alembic
+# @app.on_event("startup")
+# def on_startup():
+#     create_db_and_tables()
     
 app.include_router(auth_router, prefix="/api")
 app.include_router(category_router, prefix="/api")
