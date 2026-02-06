@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
 from typing import Annotated
 from sqlmodel import Session
 from pathlib import Path
