@@ -8,7 +8,7 @@ from app.services.category_service import read_category, show_category, create_c
 from app.databases.session import get_session
 from app.schemas.category_schema import ReadCategory, CreateCategory
 
-BASE_STORAGE = Path("storage/image")
+BASE_STORAGE = Path("storage/image/categories")
 BASE_STORAGE.mkdir(parents=True, exist_ok=True)
 
 router = APIRouter(prefix="/categories", tags=["category"])
@@ -45,7 +45,7 @@ def create_category_endpoint(
         filename = f"{uuid4().hex}_{image.filename}"
         filepath = BASE_STORAGE / filename
         
-        print(filepath)
+        # print(filepath)
         
         with open(filepath, "wb")  as f:
             f.write(image.file.read())
@@ -108,8 +108,6 @@ def update_category_endpoint(
             raise HTTPException(404, "Category not found")
         
         return updated
-    except Exception as e:
-        raise
     except Exception as e:
         raise HTTPException(400, str(e))
     
