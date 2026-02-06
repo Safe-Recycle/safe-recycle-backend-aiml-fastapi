@@ -7,12 +7,11 @@ from dotenv import load_dotenv
 from app.databases.session import get_session
 from app.schemas.llm_schema import LLMRequest
 from app.services.llm_service import process_llm_request
+from app.core.config import settings
 
-import os
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL_NAME")
-# GEMINI_API_URL = os.getenv("GEMINI_API_URL")
+GEMINI_API_KEY = settings.GEMINI_API_KEY
+GEMINI_MODEL_NAME = settings.GEMINI_MODEL_NAME
 
 
 router = APIRouter(prefix="/llm", tags=["LLM"])
