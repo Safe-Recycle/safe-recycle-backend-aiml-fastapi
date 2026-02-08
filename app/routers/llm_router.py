@@ -18,7 +18,6 @@ async def llm_process_request(
 
     model_name: Annotated[str, Form(...)],
     file: Annotated[UploadFile, File(...)],
-    prompt: Annotated[str, Form(...)],
     session: Session = Depends(get_session)
 ):
     try:
