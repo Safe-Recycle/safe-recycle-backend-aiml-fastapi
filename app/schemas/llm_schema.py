@@ -1,10 +1,14 @@
 from fastapi import UploadFile
 from pydantic import BaseModel
 
+from app.schemas.base_response_schema import BaseResponse
+
 class LLMRequest(BaseModel):
-    
     id: int
     image_filename: str
-    model_name: str
-    prompt: str
+
+class LLMResponse(BaseModel):
     output_message: str
+
+class LLMRequestResponse(BaseResponse):
+    data: LLMResponse
