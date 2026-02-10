@@ -9,6 +9,7 @@ from pathlib import Path
 from app.routers.authentication_router import router as auth_router
 from app.routers.category_router import router as category_router
 from app.routers.item_router import router as item_router
+from app.routers.user_router import router as user_router
 # from app.databases.session import create_db_and_tables
 
 app = FastAPI()
@@ -21,6 +22,7 @@ app = FastAPI()
 app.include_router(auth_router, prefix="/api")
 app.include_router(category_router, prefix="/api")
 app.include_router(item_router, prefix="/api")
+app.include_router(user_router, prefix="/api")
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
