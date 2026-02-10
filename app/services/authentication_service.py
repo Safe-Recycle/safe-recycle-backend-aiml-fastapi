@@ -94,6 +94,13 @@ def create_user(session: Session, user_in: UserCreate) -> User:
     if existing_user:
         raise ValueError("Username already exist")
     
+    existing_email = session.exec(
+        select(User).where(User.email == user_in.email)
+    ).first()
+    
+    if existing_email:
+        raise ValueError("Email is already used")
+    
     user = User(
         name=user_in.name,
         email=user_in.email,
