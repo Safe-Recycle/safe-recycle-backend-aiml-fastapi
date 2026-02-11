@@ -63,14 +63,13 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
                 Example: 
                 {"name": "plastic bottle", "description": "A clear plastic water bottle", "recycle": "Rinse and place in plastic bin. Otherwise, you can reuse it by creating a DIY things, etc", "is_reusable": true, "is_recyclable": true, "is_hazardous": false, "category_id": 2}
                 
-                For "recycle" field provide specific recycling instructions for the item. in Markdown format.
-
-                And the others is: No markdown, no extra text.
+                No markdown, no extra text.
                 """
             ]
         )
 
-        return response.text
+        llm_request_result = response.text
+        return llm_request_result
 
     except Exception as e:
         print(f"Error processing uploaded file: {str(e)}")
@@ -108,51 +107,11 @@ async def llm_check_request(upload_file: UploadFile, session: Session) -> str:
         )
 
         llm_check_result = response.text
-        return llm_check_result
-    
-        # llm_check_data = extract_json_check(llm_check_result)
-
-        # if not llm_check_data or 'name' not in llm_check_data:
-        #     print("Failed to extract valid JSON from LLM response: {llm_check_result}")
-        #     return None
         
-        # detected_item_name = llm_check_data['name'].strip().lower()
-        # print(f"Detected item name: {detected_item_name}")
-
-        # check_statement = select(Item).where(Item.name == detected_item_name)
-        # existing_item = session.exec(check_statement).first()
-
-        # if existing_item:
-        #     print("Cache HIT! Returning data from DB")
-        #     return {
-        #         "item_name": existing_item.name,
-        #         "description": existing_item.description,
-        #         "recycle": existing_item.recycle
-        #     }
-        # else:
-        #     print("Cache MISS! No matching item found in DB")
-        #     return {
-        #         "item_name": detected_item_name,
-        #         "description": None,
-        #         "recycle": None
-        #     }
+        llm_check_json_extract = json.loads(llm_check_result)
+        json_extract_result = llm_check_json_extract.get("name", "Unknown item")
+        return json_extract_result
 
     except Exception as e:
         print(f"Error processing uploaded file: {str(e)}")
         raise e
-    
-
-#---------------------------------------------------------------#
-#----------------- EXTRACT JSON CHECK FUNCTION -----------------#
-#---------------------------------------------------------------#
-async def extract_json_check(text: str):
-    try:
-        match = re.search(r'\{.*\}', text, re.DOTALL)
-        if match:
-            json_str = match.group()
-            return json.loads(json_str)
-        else:
-            return None
-    
-    except json.JSONDecodeError:
-        return None
