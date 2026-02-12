@@ -8,7 +8,8 @@ import requests
 from fastapi import UploadFile
 from google import genai
 from google.genai import types
-from sqlmodel import Session, select
+from sqlmodel import Session, select, insert
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.core.config import settings
 from app.models.item_model import Item
@@ -69,7 +70,51 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
         )
 
         llm_request_result = response.text
-        return llm_request_result
+
+        llm_request_json_extract = json.loads(llm_request_result)
+        extract_name = llm_request_json_extract.get("name", "Unknown item")
+        extract_description = llm_request_json_extract.get("description", "Unknown description")
+        extract_recycle = llm_request_json_extract.get("recycle", "Unknown recycle")
+        extract_is_reusable = llm_request_json_extract.get("is_reusable", "Unknown status")
+        extract_is_recyclable = llm_request_json_extract.get("is_recyclable", "Unknown status")
+        extract_is_hazardous = llm_request_json_extract.get("is_hazardous", "Unknown status")
+        raw_category_id = llm_request_json_extract.get("category_id", 12)
+        extract_category_id = int(raw_category_id)
+
+        new_item = Item(
+            id=1,
+            name=extract_name,
+            description=extract_description,
+            image_link="path/to/jpg",
+            recycle=extract_recycle,
+            is_reusable=extract_is_reusable,
+            is_recyclable=extract_is_recyclable,
+            is_hazardous=extract_is_hazardous,
+            category_id=extract_category_id
+        )
+
+        try:
+            session.add(new_item)
+            session.commit()
+            session.refresh(new_item)
+
+            status = str({
+                "status": "success",
+                "message": "Item successfully inserted",
+                "data": {
+                    "id": new_item.id,
+                    "name": new_item.name
+                }
+            })
+            return status
+
+        except SQLAlchemyError as e:
+            session.rollback()
+            status = str({
+                "status": "failed",
+                "message": str(e)
+            })
+            return status
 
     except Exception as e:
         print(f"Error processing uploaded file: {str(e)}")
