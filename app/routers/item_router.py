@@ -1,12 +1,16 @@
 from uuid import uuid4
 from sqlmodel import Session
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from pathlib import Path
 import math 
 
 from app.services.item_service import read_item, create_item, show_item, update_item, delete_item
+from app.services.history_service import create_history
+from app.services.authentication_service import get_current_active_user
+from app.models.user_model import User
 from app.schemas.item_schema import ItemListResponse, ReadItem, CreateItem, UpdateItem, SingleItemResponse
+from app.schemas.history_schema import CreateHistory
 from app.databases.session import get_session
 
 BASE_STORAGE = Path("storage/image/items")
@@ -63,11 +67,22 @@ def create_item_endpoint(
         )
         
 @router.get("/{id}", response_model=SingleItemResponse)
-def read_item_endpoint(id: int, session: Session = Depends(get_session)):
+def read_item_endpoint(
+    id: int, 
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    session: Session = Depends(get_session),
+):
     item = read_item(session=session, id=id)
+    
+    history = CreateHistory(
+        user_id=current_user.id,
+        item_id=id
+    )
     
     if item is None:
         raise HTTPException(404, f"Item {id} doesn't exists")
+    
+    create_history(session=session, data=history)
     
     return {
         "status": "Success",
