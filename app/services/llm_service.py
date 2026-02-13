@@ -60,9 +60,15 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
                     "is_hazardous": false, 
                     "category_id": 12
                 }
+                
 
-                Example: 
+                If the item was not a trash item or could not be identified, return name as "Wasted Not Identified".
+
+                Example for identified trash item: 
                 {"name": "plastic bottle", "description": "A clear plastic water bottle", "recycle": "Rinse and place in plastic bin. Otherwise, you can reuse it by creating a DIY things, etc", "is_reusable": true, "is_recyclable": true, "is_hazardous": false, "category_id": 2}
+
+                Example for non-trash item:
+                {"name": "Wasted Not Identified", "description": "Item could not be identified as trash", "recycle": "N/A", "is_reusable": false, "is_recyclable": false, "is_hazardous": false, "category_id": 12}
                 
                 No markdown, no extra text.
                 """
@@ -81,40 +87,52 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
         raw_category_id = llm_request_json_extract.get("category_id", 12)
         extract_category_id = int(raw_category_id)
 
-        new_item = Item(
-            id=1,
-            name=extract_name,
-            description=extract_description,
-            image_link="path/to/jpg",
-            recycle=extract_recycle,
-            is_reusable=extract_is_reusable,
-            is_recyclable=extract_is_recyclable,
-            is_hazardous=extract_is_hazardous,
-            category_id=extract_category_id
-        )
-
-        try:
-            session.add(new_item)
-            session.commit()
-            session.refresh(new_item)
-
-            status = str({
-                "status": "success",
-                "message": "Item successfully inserted",
-                "data": {
-                    "id": new_item.id,
-                    "name": new_item.name
-                }
-            })
-            return status
-
-        except SQLAlchemyError as e:
-            session.rollback()
-            status = str({
+        if extract_name == "Wasted Not Identified":
+            status = {
                 "status": "failed",
-                "message": str(e)
-            })
+                "message": "Item could not be identified as trash"
+            }
             return status
+        
+        else:
+            new_item = Item(
+                name=extract_name,
+                description=extract_description,
+                image_link="path/to/jpg",
+                recycle=extract_recycle,
+                is_reusable=extract_is_reusable,
+                is_recyclable=extract_is_recyclable,
+                is_hazardous=extract_is_hazardous,
+                category_id=extract_category_id
+            )
+
+            try:
+                session.add(new_item)
+                session.commit()
+                session.refresh(new_item)
+
+                status = {
+                    "status": "success",
+                    "message": "Item successfully inserted",
+                    "data": {
+                        "name": new_item.name,
+                        "description": new_item.description,
+                        "recycle": new_item.recycle,
+                        "is_reusable": new_item.is_reusable,
+                        "is_recyclable": new_item.is_recyclable,
+                        "is_hazardous": new_item.is_hazardous,
+                        "category_id": new_item.category_id
+                    }
+                }
+                return status
+
+            except SQLAlchemyError as e:
+                session.rollback()
+                status = str({
+                    "status": "failed",
+                    "message": str(e)
+                })
+                return status
 
     except Exception as e:
         print(f"Error processing uploaded file: {str(e)}")
@@ -155,7 +173,39 @@ async def llm_check_request(upload_file: UploadFile, session: Session) -> str:
         
         llm_check_json_extract = json.loads(llm_check_result)
         json_extract_result = llm_check_json_extract.get("name", "Unknown item")
-        return json_extract_result
+        
+        if selected_item := session.exec(
+            select(Item).where(Item.name == json_extract_result)
+        ).first():
+            json_extract_result = {
+                "name": selected_item.name,
+                "description": selected_item.description,
+                "recycle": selected_item.recycle,
+                "is_reusable": selected_item.is_reusable,
+                "is_recyclable": selected_item.is_recyclable,
+                "is_hazardous": selected_item.is_hazardous,
+                "category_id": selected_item.category_id
+            }
+
+            status = {
+            "status": "success",
+            "message": "Item successfully checked",
+            "data": json_extract_result
+            }
+
+            return status
+        
+        else:
+            json_extract_result = {
+                "name": "Item not found in database"
+            }
+
+            status = {
+                "status": "failed",
+                "message": "Item not found in database",
+                "data": json_extract_result
+            }
+            return status
 
     except Exception as e:
         print(f"Error processing uploaded file: {str(e)}")

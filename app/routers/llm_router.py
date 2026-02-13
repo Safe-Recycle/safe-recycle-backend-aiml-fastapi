@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from dotenv import load_dotenv
 
 from app.databases.session import get_session
-from app.schemas.llm_schema import LLMRequest, LLMResponse, LLMRequestResponse
+from app.schemas.llm_schema import LLMRequest, LLMResponse
 from app.services.llm_service import process_llm_request, llm_check_request
 from app.core.config import settings
 
@@ -13,23 +13,19 @@ from app.core.config import settings
 router = APIRouter(prefix="/llm", tags=["LLM"])
 
 
-@router.post("/process", response_model=LLMRequestResponse)
+@router.post("/process", response_model=LLMResponse)
 async def llm_process_request(
     file: Annotated[UploadFile, File(...)],
     session: Session = Depends(get_session)
 ):
     try:
-        result_model = await process_llm_request(
+        process_result = await process_llm_request(
             upload_file=file,
             session=session
         )
-
+        
         return {
-            "status": "success",
-            "message": "LLM request processed successfully",
-            "data": {
-                "output_message": result_model,
-            }
+            "output_message": process_result
         }
 
     except Exception as e:
@@ -38,7 +34,7 @@ async def llm_process_request(
             detail=f"Validation Error: {str(e)}"
         )
     
-@router.post("/check", response_model=LLMRequestResponse)
+@router.post("/check", response_model=LLMResponse)
 async def llm_check(
     file: Annotated[UploadFile, File(...)],
     session: Session = Depends(get_session)
@@ -48,13 +44,9 @@ async def llm_check(
             upload_file=file,
             session=session
         )
-
+        
         return {
-            "status": "success",
-            "message": "LLM check processed successfully",
-            "data": {
-                "output_message": check_result,
-            }
+            "output_message": check_result
         }
 
     except Exception as e:

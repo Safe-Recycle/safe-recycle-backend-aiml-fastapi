@@ -8,7 +8,4 @@ class LLMRequest(BaseModel):
     image_filename: str
 
 class LLMResponse(BaseModel):
-    output_message: str
-
-class LLMRequestResponse(BaseResponse):
-    data: LLMResponse
+    output_message: dict
