@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Relationship
 from typing import TYPE_CHECKING
 
@@ -15,6 +15,6 @@ class RefreshToken(SQLModel, table=True):
     expires_at: datetime
     revoked: bool = False
     
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now(timezone.utc))
     
     user: "User" = Relationship(back_populates="refresh_token")

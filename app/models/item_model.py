@@ -1,9 +1,10 @@
 from sqlmodel import Field, SQLModel, Relationship
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from app.models.category_model import Category
+    from app.models.history_model import History
     
 class Item(SQLModel, table=True):
     __tablename__ = "items"
@@ -23,3 +24,5 @@ class Item(SQLModel, table=True):
     
     category_id: int = Field(foreign_key="categories.id", index=True)
     category: "Category" = Relationship(back_populates="item")
+    
+    history: List["History"] = Relationship(back_populates="item")
