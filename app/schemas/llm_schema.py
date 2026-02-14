@@ -7,5 +7,5 @@ class LLMRequest(BaseModel):
     id: int
     image_filename: str
 
-class LLMResponse(BaseModel):
-    output_message: dict
+class SingleLLMResponse(BaseResponse):
+    data: dict

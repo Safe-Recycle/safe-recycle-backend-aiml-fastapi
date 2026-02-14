@@ -1,6 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List
-
 from app.schemas.base_response_schema import BaseResponse
 
 class CreateHistory(BaseModel):
@@ -15,3 +14,14 @@ class Recommendations(BaseModel):
     
 class ResponseRecommendations(BaseResponse):
     data: List[Recommendations]
+    
+class PopularItem(BaseModel):
+    id: int
+    name: str
+    image_link: str
+    category_id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ResponsePopularItem(BaseResponse):
+    data: List[PopularItem]

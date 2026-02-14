@@ -4,16 +4,18 @@ import re
 import tempfile
 import shutil
 import requests
+from uuid import uuid4
 
-from fastapi import UploadFile
+from fastapi import UploadFile, Path
 from google import genai
 from google.genai import types
-from sqlmodel import Session, select, insert
+from sqlmodel import Session, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.core.config import settings
 from app.models.item_model import Item
 from app.models.category_model import Category
+from app.routers.item_router import BASE_STORAGE
 
 #---------------------------------------------------------------#
 #-------------------- LLM REQUEST FUNCTION ---------------------#
@@ -65,7 +67,7 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
                 If the item was not a trash item or could not be identified, return name as "Wasted Not Identified".
 
                 Example for identified trash item: 
-                {"name": "plastic bottle", "description": "A clear plastic water bottle", "recycle": "Rinse and place in plastic bin. Otherwise, you can reuse it by creating a DIY things, etc", "is_reusable": true, "is_recyclable": true, "is_hazardous": false, "category_id": 2}
+                {"name": "plastic bottle", "description": "A clear plastic water bottle", "recycle": "**First choice** Before throwing it, see if it can be reused as DIY thing. Easy reuse ideas: - Refill for water\n - Use as a plant watering can\n - Cut and use as a funnel\n\n **How to recycle properly** Most plastic bottle are reusable, especially those marked with PET, PPE, or #1\n Steps:\n - Empty the bottle completely\n - Remove the cap and label\n - Rinse the bottle\n - Place it in the recycling bin", "is_reusable": true, "is_recyclable": true, "is_hazardous": false, "category_id": 2}
 
                 Example for non-trash item:
                 {"name": "Wasted Not Identified", "description": "Item could not be identified as trash", "recycle": "N/A", "is_reusable": false, "is_recyclable": false, "is_hazardous": false, "category_id": 12}
@@ -95,10 +97,17 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
             return status
         
         else:
+
+            filename = f"{uuid4().hex}_{upload_file.filename}"
+            filepath = os.path.join(BASE_STORAGE, filename)
+            with open(filepath, "wb") as f:
+                f.write(image_bytes)
+                f.close()
+
             new_item = Item(
                 name=extract_name,
                 description=extract_description,
-                image_link="path/to/jpg",
+                image_link=str(filepath),
                 recycle=extract_recycle,
                 is_reusable=extract_is_reusable,
                 is_recyclable=extract_is_recyclable,
@@ -111,28 +120,22 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
                 session.commit()
                 session.refresh(new_item)
 
-                status = {
-                    "status": "success",
-                    "message": "Item successfully inserted",
-                    "data": {
-                        "name": new_item.name,
-                        "description": new_item.description,
-                        "recycle": new_item.recycle,
-                        "is_reusable": new_item.is_reusable,
-                        "is_recyclable": new_item.is_recyclable,
-                        "is_hazardous": new_item.is_hazardous,
-                        "category_id": new_item.category_id
-                    }
+                data = {
+                    "id": new_item.id,
+                    "name": new_item.name,
+                    "description": new_item.description,
+                    "recycle": new_item.recycle,
+                    "is_reusable": new_item.is_reusable,
+                    "is_recyclable": new_item.is_recyclable,
+                    "is_hazardous": new_item.is_hazardous,
+                    "category_id": new_item.category_id
                 }
-                return status
+
+                return data
 
             except SQLAlchemyError as e:
                 session.rollback()
-                status = str({
-                    "status": "failed",
-                    "message": str(e)
-                })
-                return status
+                ValueError(f"ERROR DATABASE: {str(e)}")
 
     except Exception as e:
         print(f"Error processing uploaded file: {str(e)}")
@@ -178,6 +181,7 @@ async def llm_check_request(upload_file: UploadFile, session: Session) -> str:
             select(Item).where(Item.name == json_extract_result)
         ).first():
             json_extract_result = {
+                "id": selected_item.id,
                 "name": selected_item.name,
                 "description": selected_item.description,
                 "recycle": selected_item.recycle,
@@ -187,25 +191,14 @@ async def llm_check_request(upload_file: UploadFile, session: Session) -> str:
                 "category_id": selected_item.category_id
             }
 
-            status = {
-            "status": "success",
-            "message": "Item successfully checked",
-            "data": json_extract_result
-            }
-
-            return status
+            return json_extract_result
         
         else:
             json_extract_result = {
                 "name": "Item not found in database"
             }
 
-            status = {
-                "status": "failed",
-                "message": "Item not found in database",
-                "data": json_extract_result
-            }
-            return status
+            return json_extract_result
 
     except Exception as e:
         print(f"Error processing uploaded file: {str(e)}")

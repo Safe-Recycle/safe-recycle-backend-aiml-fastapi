@@ -69,8 +69,9 @@ def update_user(
     for field, value in updated_data.items():
         setattr(existing, field, value)
     
-    existing.hashed_password = hashed_password     
-    existing.updated_at = datetime.now(timezone.utc)
+    if data.password:
+        existing.hashed_password = hashed_password     
+        existing.updated_at = datetime.now(timezone.utc)
     
     session.add(existing)
     session.commit()

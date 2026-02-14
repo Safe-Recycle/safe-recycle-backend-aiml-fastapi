@@ -6,7 +6,7 @@ from typing import Annotated
 from sqlmodel import Session
 from pathlib import Path
 
-from app.routers import llm_router
+from app.routers import history_router, llm_router
 from app.routers.authentication_router import router as auth_router
 from app.routers.category_router import router as category_router
 from app.routers.llm_router import router as llm_router
