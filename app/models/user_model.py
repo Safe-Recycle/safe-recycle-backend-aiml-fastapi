@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 if TYPE_CHECKING:
     from app.models.refresh_token_model import RefreshToken
+    from app.models.history_model import History
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
@@ -19,3 +20,4 @@ class User(SQLModel, table=True):
     updated_at: datetime | None = None
     
     refresh_token: List["RefreshToken"] = Relationship(back_populates="user")
+    history: List["History"] = Relationship(back_populates="user")
