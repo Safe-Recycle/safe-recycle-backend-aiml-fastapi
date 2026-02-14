@@ -15,6 +15,6 @@ class RefreshToken(SQLModel, table=True):
     expires_at: datetime
     revoked: bool = False
     
-    created_at: datetime = Field(default_factory=datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     user: "User" = Relationship(back_populates="refresh_token")

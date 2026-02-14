@@ -14,7 +14,7 @@ class History(SQLModel, table=True):
     user_id: int | None = Field(foreign_key="users.id", index=True)
     item_id: int | None = Field(foreign_key="items.id", index=True)
     
-    viewed_at: datetime = Field(default_factory=datetime.now(timezone.utc))
+    viewed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     user: "User" = Relationship(back_populates="history")
     item: "Item" = Relationship(back_populates="history")
