@@ -40,3 +40,11 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         }
     )
     
+BASE_DIR = Path(__file__).resolve().parent.parent
+STORAGE_DIR = BASE_DIR / "storage"
+
+app.mount(
+    "/storage",
+    StaticFiles(directory=STORAGE_DIR),
+    name="storage"    
+)
