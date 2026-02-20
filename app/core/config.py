@@ -5,7 +5,8 @@ class Settings(BaseSettings):
     ENV: str
     
     GEMINI_API_KEY: str
-    GEMINI_MODEL_NAME: str
+    GEMINI_MODEL_NAME_CHECK: str
+    GEMINI_MODEL_NAME_PROCESS: str
 
     SECRET_KEY: str
     ALGORITHM: str

@@ -1,16 +1,12 @@
 import json
 import os
-import re
-import tempfile
-import shutil
-import requests
 from uuid import uuid4
 
-from fastapi import UploadFile, Path
+from fastapi import UploadFile
 from google import genai
 from google.genai import types
 from sqlmodel import Session, select
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
 from app.models.item_model import Item
@@ -33,7 +29,7 @@ async def process_llm_request(upload_file: UploadFile, session: Session) -> str:
 
 
         response = client.models.generate_content(
-            model=settings.GEMINI_MODEL_NAME,
+            model=settings.GEMINI_MODEL_NAME_PROCESS,
             contents=[
                 types.Part.from_bytes(
                     data=image_bytes,
@@ -160,7 +156,7 @@ async def llm_check_request(upload_file: UploadFile, session: Session) -> str:
         mime_type = "image/jpeg" or "image/jpg"
 
         response = client.models.generate_content(
-            model=settings.GEMINI_MODEL_NAME,
+            model=settings.GEMINI_MODEL_NAME_CHECK,
             contents=[
                 types.Part.from_bytes(
                     data=image_bytes,

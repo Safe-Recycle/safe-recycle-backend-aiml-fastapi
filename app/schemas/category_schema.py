@@ -8,7 +8,10 @@ class ReadCategory(BaseModel):
     id: int
     name: str
     image_link: str
-    
+
+class CategoryName(BaseModel):
+    name: str
+
     model_config = {
         "from_attributes": True
     }
