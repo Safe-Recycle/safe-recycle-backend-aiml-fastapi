@@ -114,11 +114,21 @@ def show_items_endpoint(
         offset=offset
     )
     
+    formatted_items = [
+        {
+            "id": item.id,
+            "name": item.name,
+            "image_link": item.image_link,
+            "category_name": item.category.name
+        }
+        for item in items
+    ]
+    
     total_pages = math.ceil(total / limit)
     
     return {
         "status": "success",
-        "data": items,
+        "data": formatted_items,
         "meta": {
             "page": page,
             "limit": limit,

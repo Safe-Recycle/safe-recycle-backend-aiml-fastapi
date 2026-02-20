@@ -70,7 +70,7 @@ def show_item(
     
     items = session.exec(
         statement.offset(offset).limit(limit)
-    )
+    ).all()
     
     return items, total
 

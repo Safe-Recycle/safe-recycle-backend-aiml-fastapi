@@ -42,6 +42,7 @@ class ShowItem(BaseModel):
     id: int
     name: str
     image_link: str
+    category_name: str
 
 class ItemListResponse(BaseModel):
     status: str
