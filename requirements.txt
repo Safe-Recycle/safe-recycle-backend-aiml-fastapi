@@ -13,7 +13,7 @@ google-genai
 sqlmodel
 pydantic-settings
 pydantic[email]
-psycopg2
+psycopg2-binary
 alembic
 
 # OAuth
