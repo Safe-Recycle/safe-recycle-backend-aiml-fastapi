@@ -1,5 +1,5 @@
 numpy
-
+gdown
 uvicorn
 pyjwt
 fastapi

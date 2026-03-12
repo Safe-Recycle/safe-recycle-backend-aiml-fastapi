@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     
     DATABASE_URL: str
+    GOOGLE_DRIVE_CATEGORIES: str
     DB_DRIVER: str
     DB_HOST: str
     DB_PORT: int
