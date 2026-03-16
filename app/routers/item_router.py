@@ -188,13 +188,15 @@ def update_item_endpoint(
             category_name=category_name
         )
         
+        update_data = data_dict.model_dump(exclude=None)
+        
         if image_path:
-            data_dict.image_link = image_path
+            update_data["image_link"] = image_path
         
         updated = update_item(
             session=session,
             id=id,
-            data=data_dict  
+            data=update_data  
         )
         
         if not updated:
