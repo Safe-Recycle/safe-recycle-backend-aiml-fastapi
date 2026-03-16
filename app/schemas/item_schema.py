@@ -50,15 +50,15 @@ class ItemListResponse(BaseModel):
     meta: PaginationMeta
     
 class UpdateItem(BaseModel):
-    name: str | None
-    description: str | None
-    image_link: str | None
-    recycle: str | None
+    name: str | None = None
+    description: str | None = None
+    image_link: str | None = None
+    recycle: str | None = None
     
-    is_reusable: bool | None
-    is_recyclable: bool | None
-    is_hazardous: bool | None
+    is_reusable: bool | None = None
+    is_recyclable: bool | None = None
+    is_hazardous: bool | None = None
     
-    category_name: str | None
+    category_name: str | None = None
     
     updated_at: datetime = datetime.now(timezone.utc)
