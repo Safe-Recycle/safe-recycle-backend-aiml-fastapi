@@ -4,6 +4,7 @@ from typing import List, Optional, Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from pathlib import Path
 import math 
+import shutil
 
 from app.services.item_service import read_item, create_item, show_item, update_item, delete_item
 from app.services.history_service import create_history
@@ -37,8 +38,11 @@ def create_item_endpoint(
         filename = f"{uuid4().hex}_{image.filename}"
         filepath = BASE_STORAGE / filename
         
-        with open(filepath, "wb") as f:
-            f.write(image.file.read())
+        print("Uploading image:", image.filename)
+        print("Saving to:", filepath)
+        
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
             
         item = create_item(
             session=session,
