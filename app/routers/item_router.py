@@ -173,8 +173,8 @@ def update_item_endpoint(
             filename = f"{uuid4().hex}_{image.filename}"
             filepath = BASE_STORAGE / filename
             
-            with open(filepath, "wb") as f:
-                f.write(image.file.read())
+            with open(filepath, "wb") as buffer:
+                shutil.copyfileobj(image.file, buffer)
                 
             image_path = str(filepath)
         
